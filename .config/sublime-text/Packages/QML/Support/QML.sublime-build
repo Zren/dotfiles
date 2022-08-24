@@ -1,0 +1,8 @@
+{
+    "shell_cmd": "QML_DISABLE_DISK_CACHE=true konsole --hold -e \"qmlscene $file\"",
+    "selector": "source.qml",
+    "file_regex": "^file:\/\/(.+):([0-9]+):() (.*)$",
+    "windows": {
+        "file_regex": "^file:\/\/\/(.+):([0-9]+):() (.*)$"
+    }
+}

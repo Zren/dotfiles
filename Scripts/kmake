@@ -1,0 +1,147 @@
+#!/bin/bash
+
+# To install this script, save to /usr/local/bin/kmake
+# Don't forget to make it executable with:
+# sudo chmod +x /usr/local/bin/kmake
+
+#---
+doClean=false
+doTests=false
+doInstall=false
+rerunTests=false
+errorOnDeprecated=false
+buildDir="build"
+buildPrefix=/usr
+buildType="Debug"
+
+#---
+numCpuCores=`grep -c ^processor /proc/cpuinfo`
+let "numMakeThreads = $numCpuCores + 1"
+
+#---
+for i in "$@"; do
+	opt="$i"
+	shift
+	case $opt in
+		c|clean)
+		doClean=true
+		;;
+
+		i|install)
+		doInstall=true
+		;;
+
+		l|local)
+		buildPrefix=/usr/local
+		;;
+
+		d|debug)
+		buildType="Debug"
+		;;
+
+		t|tests)
+		doTests=true
+		;;
+
+		--rerun-failed)
+		rerunTests=true
+		;;
+
+		r|release)
+		buildType="Release"
+		;;
+
+		h|-h|--help|*)
+		echo "kmake [clean] [install]"
+		echo "    kmake [c | clean]       Delete build directory before build"
+		echo "    kmake [i | install]     Run 'sudo make install' after build"
+		echo "    kmake [l | local]       Use '/usr/local' install prefix"
+		echo "    kmake [d | debug]       CMAKE_BUILD_TYPE=Debug"
+		echo "    kmake [t | tests]       BUILD_TESTING=ON"
+		echo "    kmake [r | release]     CMAKE_BUILD_TYPE=Release"
+		echo ""
+		echo "${numCpuCores} cpu cores found, kmake will use 'make -j${numMakeThreads}'"
+		echo ""
+		exit 0
+		;;
+	esac
+done
+
+#---
+buildTypeArg="-DCMAKE_BUILD_TYPE=${buildType}"
+
+if $doTests; then
+	buildTestArg="-DBUILD_TESTING=ON"
+else
+	buildTestArg="-DBUILD_TESTING=OFF"
+fi
+
+#---
+rerunTestsArg=""
+if $rerunTests; then
+	rerunTestsArg="--rerun-failed"
+fi
+
+#---
+warningsArg=""
+if $errorOnDeprecated; then
+	warningsArg="-Wdeprecated=error -Wdeprecated-declarations=error"
+fi
+
+#---
+if [ ! -f "CMakeLists.txt" ]; then
+	echo "Folder does not contain CMakeLists.txt"
+	exit 1
+fi
+
+#---
+if $doClean && [ -d $buildDir ]; then
+	rm -r $buildDir
+fi
+
+#---
+if [ ! -d $buildDir ]; then
+	mkdir $buildDir
+fi
+
+#---
+success=false
+( cd $buildDir \
+	&& cmake .. -DCMAKE_INSTALL_PREFIX=${buildPrefix} ${buildTypeArg} ${buildTestArg} -DKDE_INSTALL_USE_QT_SYS_PATHS=ON ${warningsArg} \
+	&& make -j${numMakeThreads} \
+)
+if [ $? -eq 0 ]; then
+	success=true
+fi
+
+if $success; then
+	if $doTests; then
+		# (cd $buildDir && make test)
+		(cd $buildDir && ctest . --output-on-failure $rerunTestsArg)
+		testCode="$?"
+		if [ "$testCode" != "0" ]; then
+			if [ -f "$buildDir/Testing/Temporary/LastTest.log" ]; then
+				# xdg-open "$buildDir/Testing/Temporary/LastTest.log"
+				echo -e "\033[36m"
+				echo "============================================"
+				echo "  $buildDir/Testing/Temporary/LastTest.log"
+				echo "============================================"
+				echo -e "\033[0m"
+				
+				tail -n20 "$buildDir/Testing/Temporary/LastTest.log"
+				echo ""
+				echo -e "\033[36m============================================\033[0m"
+			fi
+			exit $testCode
+		fi
+	fi
+
+	if $doInstall; then
+		(cd $buildDir && sudo make install)
+		exit $?
+	else
+		exit 0
+	fi
+else
+	exit 1
+fi

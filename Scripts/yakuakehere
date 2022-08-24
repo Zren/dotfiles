@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ "$1" != "" ]; then
+	command="cd ""'"$1"'"
+else
+	PWD=`pwd`
+	command="cd ""'"$PWD"'"
+fi
+
+qdbus org.kde.yakuake /yakuake/sessions addSession
+qdbus org.kde.yakuake /yakuake/sessions runCommand "$command"
+qdbus org.kde.yakuake /yakuake/sessions runCommand "clear"
+qdbus org.kde.yakuake /yakuake/window toggleWindowState

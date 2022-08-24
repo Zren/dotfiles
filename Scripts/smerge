@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# This is a shim for smerge to open a gitz window.
+
+### Debug
+# notify-send "smerge" "$1 $2 $3"
+
+### https://www.sublimemerge.com/docs/command_line
+if [ "$1" == "log" ]; then
+	# Sidebar > File History
+	# log package/contents/ui/libweather/WeatherStationPicker.qml
+	relPath="$2"
+	gitz "$relPath"
+elif [ "$1" == "search" ]; then
+	# Sidebar > Folder History
+	# search path:"applets/weather/package/contents/ui/config/*"
+	if [ "${2:0:6}" == "path:\"" ] && [[ "$2" =~ \*\"$ ]]; then
+		folderRelPath="${2:6:-2}"
+		gitz "$folderRelPath"
+	fi
+fi

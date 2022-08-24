@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+	exit 1
+fi
+
+filepath=~/Scripts/$1
+if [ ! -f "$filepath" ]; then
+	touch "$filepath"
+	chmod +x "$filepath"
+	echo "#!/bin/bash" >> "$filepath"
+	echo "" >> "$filepath"
+	echo "" >> "$filepath"
+fi
+subl -n "$filepath"

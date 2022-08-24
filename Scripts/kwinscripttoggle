@@ -1,0 +1,22 @@
+#!/bin/bash
+
+pluginName="$1"
+if [ -z "$pluginName" ]; then
+	echo "Error, pluginName is empty. Eg:"
+	echo "kwinscripttoggle [pluginName]"
+	echo ""
+	kpackagetool5 --type=KWin/Script --list
+	exit 1
+fi
+
+isScriptLoaded=`qdbus org.kde.KWin /Scripting isScriptLoaded ${pluginName}`
+
+if [ "${isScriptLoaded}" == "true" ]; then
+	kwriteconfig5 --file=$HOME/.config/kwinrc --group=Plugins --key=${pluginName}Enabled false
+else
+	kwriteconfig5 --file=$HOME/.config/kwinrc --group=Plugins --key=${pluginName}Enabled true
+fi
+
+# Reload all kwin scripts
+qdbus org.kde.KWin /Scripting start
+

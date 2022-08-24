@@ -1,0 +1,63 @@
+#!/usr/bin/bash
+
+function echoCommand () {
+	echo -e "$(tput setab 12) $(tput sgr0)$(tput setaf 12)\uE0B0$(tput sgr0)$(tput setaf 9) $@$(tput sgr0) "
+}
+
+function runScript () {
+	srcFilepath="$1"
+
+	if [ -d "$srcFilepath" ]; then
+		sh ./proxydotfile "$srcFilepath"/*
+		return
+	elif [ ! -f "$srcFilepath" ]; then
+		echo ""
+		echoCommand "Skipped: $filepath"
+		echo ""
+		return
+	fi
+
+	srcRelPath="${srcFilepath#$HOME/}"
+	# echo "$srcFilepath"
+	# echo "$srcRelPath"
+
+	dirpath=`dirname "$srcRelPath"`
+	filename=`basename -- "$srcRelPath"`
+	# echo "$dirpath"
+	# echo "$filename"
+	dotfileDir="$HOME/Code/dotfiles/$dirpath"
+	dotfilePath="$dotfileDir/$filename"
+
+	if [ ! -d "$dotfileDir" ]; then
+		echo "mkdir $dotfileDir"
+		mkdir -p "$dotfileDir"
+	fi
+
+	if [ ! -f "$dotfilePath" ]; then
+		echo "ln $dotfilePath"
+		ln "$srcFilepath" "$dotfilePath"
+	fi
+}
+
+
+
+if [[ -p /dev/stdin ]]; then # Piped
+	while read filepath; do
+		if [ -z "$filepath" ]; then
+			continue
+		fi
+		runScript "$filepath"
+	done < /dev/stdin
+
+else # Terminal
+	if [ -z "$1" ]; then
+		echo "[usage] proxydotfile ~/.config/filename"
+		exit 1
+	fi
+	for filepath in "$@"; do
+		runScript "$filepath"
+	done
+fi
+
+
+

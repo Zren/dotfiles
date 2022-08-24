@@ -1,0 +1,25 @@
+#!/bin/bash
+
+################################################################################
+# Author:			Alessio 'Slux' Di Fazio <slux83@gmail.com>
+# Author-website:	http://www.capponcino.it/alessio
+# License:			GPL-v3
+# Version:			1.1
+################################################################################
+
+#open a new session
+qdbus org.kde.yakuake /yakuake/sessions addSession
+
+#get the id of the new session
+sess_id=`qdbus org.kde.yakuake /yakuake/sessions activeSessionId`
+cmdToRun="$@"
+
+#run commands
+qdbus org.kde.yakuake /yakuake/sessions runCommand "cd $(printf "%q" "$(pwd)")"
+qdbus org.kde.yakuake /yakuake/sessions runCommand "clear"
+qdbus org.kde.yakuake /yakuake/sessions runCommand "$cmdToRun"
+
+#show the terminal
+qdbus org.kde.yakuake /yakuake/window toggleWindowState
+
+

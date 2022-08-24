@@ -1,0 +1,103 @@
+#!/usr/bin/python3
+
+# Based on Ole Tange's perl script answered at:
+# https://unix.stackexchange.com/questions/18844/list-the-files-accessed-by-a-program
+# https://gitlab.com/ole.tange/tangetools/-/tree/master/tracefile
+
+import os
+import sys
+import subprocess
+import re
+import argparse
+
+
+strRegex = r'"(?:[^"\\]|\\.)*"' # https://stackoverflow.com/questions/249791/regex-for-quoted-string-with-escaping-quotes
+codesRegex = r', (\||O_RDONLY|O_CLOEXEC)+\)(, (\d{4}))? = (\d)'
+linePattern = re.compile(r'^(\[pid ([\s\d]+)\] )?(openat)\((AT_FDCWD), (' + strRegex + r')')
+exitedPattern = re.compile(r'^(\[pid ([\s\d]+)\] )?\+\+\+ exited with (\d+) \+\+\+')
+procAttachedPattern = re.compile(r'strace: Process (\d+) attached')
+sigchildPattern = re.compile(r'^(\[pid ([\s\d]+)\] )?\-\-\- SIGCHLD \{')
+
+def traceFiles(userCmd, followForks=False):
+	straceCmd = ['strace', '-e', 'trace=openat', '--successful-only']
+	if followForks:
+		straceCmd += ['--follow-forks']
+	straceCmd += userCmd
+	proc = subprocess.Popen(straceCmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+	# for line in proc.stderr.readlines():
+	# 	print(line.decode('utf8'))
+	while proc.stderr.readable() and not proc.stderr.closed:
+		line = proc.stderr.readline()
+		if len(line) == 0: # EOF
+			break
+		line = line.decode('utf8')
+		line = line.rstrip()
+		# fileExists = not line.endswith(' = -1 ENOENT (No such file or directory)')
+		m = linePattern.match(line)
+		if m:
+			filepath = m.group(5)
+			filepath = filepath.strip('\"')
+			filepath = filepath.replace('\\\"', '\"')
+			# print(filepath)
+			yield filepath
+		else:
+			if exitedPattern.match(line):
+				pass
+			elif procAttachedPattern.match(line):
+				pass
+			elif sigchildPattern.match(line):
+				pass
+			else:
+				sys.stderr.write('ERR: ' + line + '\n')
+				# pass
+
+soLibraryPattern = re.compile(r'\.so(\.\d+)*$')
+ignoredDirs = [
+	# '/lib64/',
+	# '/usr/lib64/',
+	# '/usr/lib/',
+
+	'/usr/lib/locale/',
+
+	'/proc/',
+	'/sys/bus/pci/devices',
+	'/dev/urandom',
+	'/dev/null',
+	'/etc/localtime',
+
+	'/usr/share/fonts/',
+	'/usr/share/fontconfig/',
+	'/usr/share/fonts-config/',
+	'/usr/share/stix-fonts/',
+	'/var/cache/fontconfig/',
+	'/etc/fonts/conf.d/',
+
+	'/etc/ld.so.cache',
+	os.path.expanduser('~/.cache/'),
+]
+def isFilepathIgnored(filepath):
+	if soLibraryPattern.search(filepath):
+		return True
+	for dirpath in ignoredDirs:
+		if filepath.startswith(dirpath):
+			return True
+	return False
+
+def main(args):
+	for filepath in traceFiles(args.cmd, followForks=args.followForks):
+		if args.all or not isFilepathIgnored(filepath):
+			print(filepath)
+			# pass
+
+if __name__ == '__main__':
+	# traceFiles(['cat', '/home/chris/Downloads/test "test".txt'])
+	# traceFiles(['cat', '/home/chris/Downloads/test (test).txt'])
+	# traceFiles(['gnome-chess'])
+
+	parser = argparse.ArgumentParser(prog='PROG')
+	parser.add_argument('--all', action='store_true', help='Show filepaths filtered by default')
+	parser.add_argument('-f', '--follow-forks', dest='followForks', action='store_true')
+	parser.add_argument('cmd', nargs='+')
+	args = parser.parse_args()
+	main(args)
+

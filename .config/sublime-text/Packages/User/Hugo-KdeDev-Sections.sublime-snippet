@@ -1,0 +1,20 @@
+<snippet>
+	<content><![CDATA[
+{{< sections >}}
+{{< section-left >}}
+
+${1:Paragraph}
+
+{{< /section-left >}}
+{{< section-right >}}
+```qml
+${2:code}
+```
+{{< /section-right >}}
+{{< /sections >}}
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>sections</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<!-- <scope>source.markdown</scope> -->
+</snippet>

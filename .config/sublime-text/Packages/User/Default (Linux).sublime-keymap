@@ -1,0 +1,24 @@
+[
+	// { "keys": ["ctrl+b"], "command": "chain", "args": { "commands": [
+	// 	["exec", {"kill": true}],
+	// 	["build"]
+	// ]}},
+	{ "keys": ["ctrl+b"], "command": "build" },
+	{ "keys": ["ctrl+shift+b"], "command": "chain", "args": { "commands": [
+		["exec", {"kill": true}],
+		["build", {"select": true}]
+	]}},
+	{ "keys": ["super+b"], "command": "build" },
+	{ "keys": ["ctrl+\\"], "command": "toggle_side_bar" },
+	{ "keys": ["ctrl+shift+t"], "command": "open_terminal_project_folder" },
+	{ "keys": ["ctrl+shift+a"], "command": "open_terminal", "args": {
+		"parameters": [
+			"-e",
+			"git lga"
+		]
+	}},
+	{ "keys": ["ctrl+shift+k"], "command": "open_gitz" },
+	{ "keys": ["ctrl+alt+shift+k"], "command": "open_gitz_current_file" },
+	{ "keys": ["ctrl+tab"], "command": "next_view" },
+	{ "keys": ["ctrl+shift+tab"], "command": "prev_view" },
+]

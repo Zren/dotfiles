@@ -1,0 +1,4 @@
+[
+	{ "command": "copy_github_link", "caption": "Copy GitHub Link" },
+	{ "command": "copy_github_link", "caption": "Copy GitHub Link (Line)", "args": {"selectedLine": true} },
+]

@@ -1,0 +1,28 @@
+[Animation]
+Frames=0
+
+[Appearance]
+HideSkinBorders=true
+Skin=sodadark-thintitlebar
+SkinInstalledWithKns=true
+
+[Desktop Entry]
+DefaultProfile=Zren.profile
+
+[Dialogs]
+FirstRun=false
+
+[KFileDialog Settings]
+Recent Files[$e]=file:$HOME/Desktop/SusePakmanLibgstreamerUpdate.txt,file:$HOME/Desktop/SusePakmanLibgstreamerUpdate.txt
+Recent URLs[$e]=file:$HOME/Desktop/
+detailViewIconSize=16
+
+[SaveHistory Settings]
+Recent URLs[$e]=file:$HOME/Desktop
+
+[Window]
+DynamicTabTitles=true
+Height=53
+KeepOpen=false
+ShowSystrayIcon=false
+Width=100

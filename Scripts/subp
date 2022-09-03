@@ -1,0 +1,57 @@
+#!/bin/bash
+
+rofiCmd="rofi -dmenu -i -p SublimeProject"
+# rofiCmd="${rofiCmd} -kb-cancel=Escape -click-to-exit"
+rofiCmd="${rofiCmd} -sorting fsf -sort"
+rofiCmd="${rofiCmd} -matching=fuzzy"
+rofiCmd="${rofiCmd} -theme ZrenNord"
+# rofiCmd="${rofiCmd} -separator-style=none"
+
+# bgColor="#111111"
+# fgColor="#eeeff0"
+# selectedBgColor="#062d25"
+# selectedFgColor="#1abc9c"
+# infoBgColor="#000000"
+# infoFgColor="#000000"
+# errorBgColor="#000000"
+# errorFgColor="#000000"
+# borderColor="#000000"
+
+# rofiCmd="${rofiCmd} -color-enabled"
+# rofiCmd="${rofiCmd} -color-window ${bgColor},${borderColor},${borderColor}"
+# rofiCmd="${rofiCmd} -color-normal ${bgColor},${fgColor},${bgColor},${selectedBgColor},${selectedFgColor}"
+# rofiCmd="${rofiCmd} -color-active ${bgColor},${fgColor},${bgColor},${infoBgColor},${infoFgColor}"
+# rofiCmd="${rofiCmd} -color-urgent \"${bgColor}, ${fgColor}, ${bgColor}, ${errorBgColor}, ${errorFgColor}\""
+
+# echo "${rofiCmd}"
+
+# codeDir="/home/chris/Code"
+# codeDir="/run/media/chris/Manjaro/home/chris/Code"
+# fileToLaunch=`locate "${codeDir}/*.sublime-project" | ${rofiCmd}`
+
+subpConfPath=`realpath ~/.config/subprc`
+
+if [ ! -f "$subpConfPath" ]; then
+	# Populate with config file
+	echo "$subpConfPath" > "$subpConfPath"
+fi
+
+
+projectList=`cat "$subpConfPath"`
+fileToLaunch=`echo "${projectList}" | ${rofiCmd}`
+code=$?
+
+echo "$code"
+echo "$fileToLaunch"
+
+if [ $code != 0 ]; then
+	exit $code
+fi
+
+if [ ! -z "$fileToLaunch" ]; then
+	if [ -d "$fileToLaunch" ]; then
+		subl -n "$fileToLaunch"
+	else
+		xdg-open "$fileToLaunch"
+	fi
+fi

@@ -5,7 +5,7 @@ function echoCommand () {
 }
 
 function runScript () {
-	srcFilepath="$1"
+	srcFilepath=`realpath "$1"`
 
 	if [ -d "$srcFilepath" ]; then
 		sh ./proxydotfile "$srcFilepath"/*

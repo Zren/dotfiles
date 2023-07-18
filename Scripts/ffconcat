@@ -1,0 +1,40 @@
+#!/bin/bash
+
+input1="$1"
+input2="$2"
+output="$3"
+
+if [[ -z "$input1" ||  -z "$input2" ]]; then
+	echo "2 input video files required"
+	exit 1
+fi
+
+if [ -z "$output" ]; then
+	output="output.webm"
+fi
+
+echo "input1: ${input1}"
+echo "input2: ${input2}"
+echo "output: ${output}"
+
+
+# Script from:
+# https://trac.ffmpeg.org/wiki/Concatenate#Usingnamedpipestoavoidintermediatefiles
+
+# mkfifo temp1 temp2
+# ffmpeg -y -i "${input1}" -c copy -bsf:v h264_mp4toannexb -f mpegts temp1 2> /dev/null & \
+# ffmpeg -y -i "${input2}" -c copy -bsf:v h264_mp4toannexb -f mpegts temp2 2> /dev/null & \
+# ffmpeg -f mpegts -i "concat:temp1|temp2" -c copy -bsf:a aac_adtstoasc "${output}"
+
+
+# Script from:
+# https://trac.ffmpeg.org/wiki/Concatenate#differentcodec
+ffmpeg -i "${input1}" -i "${input2}" \
+  -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0]concat=n=2:v=1:a=1[outv][outa]" \
+  -map "[outv]" -map "[outa]" "${output}"
+
+# Bell when done.
+echo ""
+echo "Done."
+notify-send --icon="emblem-success" "FFMPEG Concat Finished" "${output}"
+paplay /usr/share/sounds/KDE-Sys-App-Positive.ogg

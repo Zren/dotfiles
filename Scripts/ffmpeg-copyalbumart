@@ -1,0 +1,24 @@
+#!/bin/bash
+
+inFilepath="$1"
+outFilepath="$2"
+tmpCoverPath="cover.png"
+
+if [ ! -f "$inFilepath" ] || [ ! -f "$outFilepath" ]; then
+	echo "ffmpeg-copyalbumart [in.mp3] [out.mp3]"
+	exit 1
+fi
+
+if [ -f "$tmpCoverPath" ]; then
+	echo "$tmpCoverPath already exists!"
+	exit 1
+fi
+
+ffmpeg \
+	-i "$inFilepath" \
+	-an -vcodec copy \
+	"$tmpCoverPath"
+
+ffmpeg-setcover "$tmpCoverPath" "$outFilepath"
+
+rm "$tmpCoverPath"

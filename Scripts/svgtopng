@@ -1,0 +1,70 @@
+#!/bin/bash
+
+function echoCommand () {
+	echo -e "$(tput setab 12) $(tput sgr0)$(tput setaf 12)\uE0B0$(tput sgr0)$(tput setaf 9) $@$(tput sgr0) "
+}
+
+function printHelp() {
+	echo "svgtopng [file]..."
+	echo "OUTSIZE=16 svgtopng [file]..."
+	echo "OUTSIZE=32 SUFFIX=\"\" svgtopng [file]..."
+}
+
+
+function runScript () {
+	filepath="$1"
+	shift
+
+	if [ ! -f "$filepath" ]; then
+		echo "Needs a file"
+		exit 1
+	fi
+
+	args=""
+	if [ ! -z "${OUTSIZE}" ]; then
+		args="--export-width=${OUTSIZE} --export-height=${OUTSIZE}"
+		if [ ! -z "$SUFFIX" ]; then
+			suffix="-${OUTSIZE}"
+		fi
+	fi
+	suffix="${SUFFIX}"
+	if [ ! -z "$suffix" ]; then
+		suffix="-${OUTSIZE}"
+	fi
+
+	dirpath=`dirname "$filepath"`
+	filename=`basename -- "$filepath"`
+	extension="${filename##*.}"
+	filename="${filename%.*}"
+	outFilename="${filename}${suffix}.png"
+	outFilepath="${dirpath}/${outFilename}"
+
+	echo ""
+	echoCommand "File: \"${filepath}\" => \"${outFilename}\""
+	# echo ""
+
+	inkscape "$filepath" --export-type="png" $args --export-filename="$outFilepath"
+}
+
+
+if [ -z "$1" ] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+	printHelp
+	exit 1
+fi
+
+
+if [[ -p /dev/stdin ]]; then # Piped
+	while read filepath; do
+		if [ -z "$filepath" ]; then
+			continue
+		fi
+		runScript "$filepath"
+	done < /dev/stdin
+
+else # Terminal
+	for arg in "$@"; do
+		runScript "$arg"
+	done
+fi
+
+

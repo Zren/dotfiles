@@ -1,0 +1,34 @@
+#!/bin/bash
+
+filepath="$1"
+shift
+
+tcReset=$'\e[0m'
+tcBold=$'\e[1m'
+tcGray=$'\e[90m'
+function printUsage() {
+	echo "${tcBold}ffcut${tcReset} [filepath] -ss '00:01:00' -to '00:02:00' ${tcGray}# Cut 1m..2m${tcReset}"
+	echo "${tcBold}ffcut${tcReset} [filepath] -ss '00:01:00' ${tcGray}# Cut 1m..EOF${tcReset}"
+	echo "${tcBold}ffcut${tcReset} [filepath] -to '00:02:00' ${tcGray}# Cut Start..1m${tcReset}"
+	echo "${tcBold}ffcut${tcReset} [filepath] -ss '00:01:00' -t '00:05:00' ${tcGray}# Cut 1m..6m${tcReset}"
+}
+
+if [ -z "$filepath" ]; then
+	echo "Must specify filepath"
+	printUsage
+	exit 1
+elif [ -z "$*" ]; then
+	echo "Must specify cut range"
+	printUsage
+	exit 1
+fi
+
+suffix="-cut"
+dirpath=`dirname "$filepath"`
+filename=`basename -- "$filepath"`
+extension="${filename##*.}"
+filename="${filename%.*}"
+outFilepath="${dirpath}/${filename}${suffix}.${extension}"
+
+echo "ffmpeg -i \"$filepath\" -c copy $@ \"$outFilepath\""
+ffmpeg -i "$filepath" -c copy $@ "$outFilepath"
